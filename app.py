@@ -1,5 +1,6 @@
 #Imports 
 import os
+import json as js
 import os.path
 from time import sleep
 from selenium import webdriver
@@ -60,7 +61,12 @@ class ProfileControl():
     
     def SendMessage(self):
         press('enter')
-        
+    
+    def NotificationPOPUP(self):
+        press('tab')
+        press('tab')
+        press('enter')
+        sleep(1)
 #Database Class
 class Database(object):
     def __init__(self, PATH ,cursor, sqliteConnection):
@@ -163,6 +169,10 @@ PFC = ProfileControl()
 #     DRIVER = webdriver.Chrome(PATH_CHROMEDRIVER)
 DRIVER = webdriver.Remote(service.service_url, desired_capabilities = webdriver.DesiredCapabilities.CHROME)
 # bot = Bot()
+accounts = ["alexandru6041", "tudor.rtf", "alexandru6041"]
+for i in range(len(accounts)):
+    Db.InsertData("AccountsTable", accounts[i])
+print("Data Inserted")
 data_list = []
 # Db.InsertData("AccountsTable", "alexandru6041")
 data = Db.SelectData("AccountsTable")
@@ -191,10 +201,15 @@ for i in range(len(data_list)):
         ).send_keys(username)
     sleep(0.5)
     PFC.GetToAccountMainPage()
-    sleep(4)
+    sleep(3)
     press('tab')
     press('tab')
     press('enter')
+    sleep(2)
+    if(i == 0):
+        press('tab')
+        press('tab')
+        press('enter')
     sleep(3)
     PFC.WriteMessage(message)
     sleep(0.2)
