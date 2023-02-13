@@ -1,15 +1,14 @@
 #Imports 
 import os
-import json as js
 import os.path
 from time import sleep
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.chrome.options import Options
 import selenium
 from pyautogui import press
-from pyautogui import typewrite
+from pyautogui import hotkey
 import platform
-# from instabot import Bot
 import sqlite3
 
 #Variables
@@ -17,8 +16,10 @@ sqliteConnection = sqlite3.connect("db.sqlite")
 cursor = sqliteConnection.cursor()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-message = "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy."
-options_chrome = webdriver.ChromeOptions()
+
+options_chrome = Options()
+options_chrome.add_argument("--disable-notifications") # disabling notifications in chrome settings
+
 PATH_CHROMEDRIVER = os.path.join(BASE_DIR, "chromedriver.exe")
 PATH_CHROMEDRIVER_OSX = os.path.join(BASE_DIR, "chromedriver_OSX")
 PATH = os.path.join(BASE_DIR, "db.sqlite")
@@ -43,6 +44,7 @@ class ProfileControl():
             press('tab')
             press('tab')
             press('enter')
+            
         except TypeError:
             return ProfileControl.LogInPopUpDown()
         
@@ -56,8 +58,13 @@ class ProfileControl():
         press('enter')
         press('enter')
     
-    def WriteMessage(self, message):
-        typewrite(message)
+    def WriteMessage(self):
+        if(platform.system() == 'Windows'):
+            hotkey("ctrl", "v")
+            # press('enter')
+        else:
+            hotkey("command", "v")
+            # press('enter')
     
     def SendMessage(self):
         press('enter')
@@ -67,6 +74,8 @@ class ProfileControl():
         press('tab')
         press('enter')
         sleep(1)
+        
+
 #Database Class
 class Database(object):
     def __init__(self, PATH ,cursor, sqliteConnection):
@@ -163,58 +172,64 @@ class Database(object):
 #MAIN
 Db = Database(PATH, cursor, sqliteConnection)
 PFC = ProfileControl()
-# try:
-#     DRIVER = webdriver.Chrome(PATH_CHROMEDRIVER) if platform.system == "Windows" else webdriver.Safari()
-# except Exception:
-#     DRIVER = webdriver.Chrome(PATH_CHROMEDRIVER)
-DRIVER = webdriver.Remote(service.service_url, desired_capabilities = webdriver.DesiredCapabilities.CHROME)
-# bot = Bot()
+DRIVER = webdriver.Remote(service.service_url, desired_capabilities = webdriver.DesiredCapabilities.CHROME, options=options_chrome)
 accounts = ["alexandru6041", "tudor.rtf", "alexandru6041"]
+
 for i in range(len(accounts)):
     Db.InsertData("AccountsTable", accounts[i])
 print("Data Inserted")
+
 data_list = []
-# Db.InsertData("AccountsTable", "alexandru6041")
 data = Db.SelectData("AccountsTable")
+
 for row in data:
     data_list.append(str(row))
 
 DRIVER.get("https://www.instagram.com")
-# DRIVER.fullscreen_window()
+
 sleep(1)
 PFC.LogInPopUpDown()
 sleep(2.5)
+
 username = DRIVER.find_element(by="css selector", value="input[name='username']")
 password = DRIVER.find_element(by="css selector", value="input[name='password']")
+
 username.clear()
 password.clear()
+
 username.send_keys("george_de_la_cnva")
 password.send_keys("lvanuagricol")
+
 login = DRIVER.find_element(by="css selector", value="button[type='submit']")
 login.click()
+
 sleep(8)
+
 for i in range(len(data_list)):
+    
     username = data_list[i][2:][:len(data_list[i]) - 5]
+    
     PFC.SearchProfile()
+    
     DRIVER.find_element(
         by="class name", value = "_aauy"
         ).send_keys(username)
+
     sleep(0.5)
     PFC.GetToAccountMainPage()
     sleep(3)
+
     press('tab')
     press('tab')
     press('enter')
-    sleep(2)
-    if(i == 0):
-        press('tab')
-        press('tab')
-        press('enter')
+
     sleep(3)
-    PFC.WriteMessage(message)
-    sleep(0.2)
+    PFC.WriteMessage()
+
+    sleep(1)
     PFC.SendMessage()
     sleep(3)
+
     if(i >= len(data_list)):
         service.stop()
         print(username, end="\n")
@@ -223,28 +238,5 @@ for i in range(len(data_list)):
         DRIVER.get("https://www.instagram.com")
         print(username, end="\n")
         sleep(1)
-    # sleep(2)
-    # press('enter')
-    # press('enter')
-    # sleep(2)
-    # press('tab')
-    # press('tab')
-    # press('enter')
-    # sleep(3)
-    # print("ok")
-    # typewrite(message)
-    # sleep(3)
-    # print("message typed")
-    # press('enter')
+
     print(username, end="\n")
-    
-
-# data = Db.SelectData("AccountsTable")
-# print(data)
-# Rows = "Username VARCHAR(50) NOT NULL"
-# Db.Createdatabase("AccountsTable", Rows)
-# Db.DeleteData("AccountsTable", "__maria_bianca__", "WHERE Username = ?")
-
-# bot = Bot()
-# bot.login(username=userId, password=Pass)
-# print("ok")
