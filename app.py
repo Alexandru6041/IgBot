@@ -2,20 +2,24 @@
 import os
 import os.path
 from time import sleep
+import clipboard
+from xmlrpc.client import boolean
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.chrome.options import Options
 import selenium
 from pyautogui import press
 from pyautogui import hotkey
-import platform
+from platform import system
 import sqlite3
 
 #Variables
+OS = system()
 sqliteConnection = sqlite3.connect("db.sqlite")
 cursor = sqliteConnection.cursor()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_URL = "https://www.instagram.com/"
 
 options_chrome = Options()
 options_chrome.add_argument("--disable-notifications") # disabling notifications in chrome settings
@@ -24,13 +28,27 @@ PATH_CHROMEDRIVER = os.path.join(BASE_DIR, "chromedriver.exe")
 PATH_CHROMEDRIVER_OSX = os.path.join(BASE_DIR, "chromedriver_OSX")
 PATH = os.path.join(BASE_DIR, "db.sqlite")
 
-if(platform.system() == 'Windows'):
+if(OS == 'Windows'):
     service = ChromeService(os.path.join(BASE_DIR, "chromedriver.exe"))
 else:
     service = ChromeService(os.path.join(BASE_DIR, "chromedriver_OSX"))
 
-service.start()
 
+def isEmptyClipboard():
+    if not clipboard.paste():
+        return True
+    return False
+
+
+#Exceptions
+class EmptyClipboard_ERROR(Exception):
+    __exception_message = "\n\nClipboard is empty! Please copy the message in your clipboard"
+    
+    def __init__(self, empty_clipboard, message=__exception_message):
+        self.empty_clipboard = empty_clipboard
+        self.message = str.upper(message)
+        super().__init__(self.message)
+        
 
 #Controlling IG Profile Class
 class ProfileControl():
@@ -59,7 +77,7 @@ class ProfileControl():
         press('enter')
     
     def WriteMessage(self):
-        if(platform.system() == 'Windows'):
+        if(OS == 'Windows'):
             hotkey("ctrl", "v")
             # press('enter')
         else:
@@ -170,73 +188,104 @@ class Database(object):
 
 
 #MAIN
-Db = Database(PATH, cursor, sqliteConnection)
-PFC = ProfileControl()
-DRIVER = webdriver.Remote(service.service_url, desired_capabilities = webdriver.DesiredCapabilities.CHROME, options=options_chrome)
-accounts = ["alexandru6041", "tudor.rtf", "alexandru6041"]
-
-for i in range(len(accounts)):
-    Db.InsertData("AccountsTable", accounts[i])
-print("Data Inserted")
-
-data_list = []
-data = Db.SelectData("AccountsTable")
-
-for row in data:
-    data_list.append(str(row))
-
-DRIVER.get("https://www.instagram.com")
-
-sleep(1)
-PFC.LogInPopUpDown()
-sleep(2.5)
-
-username = DRIVER.find_element(by="css selector", value="input[name='username']")
-password = DRIVER.find_element(by="css selector", value="input[name='password']")
-
-username.clear()
-password.clear()
-
-username.send_keys("george_de_la_cnva")
-password.send_keys("lvanuagricol")
-
-login = DRIVER.find_element(by="css selector", value="button[type='submit']")
-login.click()
-
-sleep(8)
-
-for i in range(len(data_list)):
+try:
+    os.system("python -m pip install -r requirements.txt")
+    os.system("clear")
     
-    username = data_list[i][2:][:len(data_list[i]) - 5]
+    if(isEmptyClipboard() == True):
+        raise EmptyClipboard_ERROR(isEmptyClipboard())
     
-    PFC.SearchProfile()
+    print("#RULES:\n\n--->DISABLE 2FA AUTHENTICATION\n\n--->FOLLOW IN ADVANCE EVERY ACCOUNT THAT YOU WANT TO SEND THE MESSAGE TO\n\n--->PASTE IN YOUR CLIPBOARD THE MESSAGE YOU WANT TO SEND\n\n--->WRITE THE LIST OF ALL YOUR ACCOUNTS THAT YOU WANT TO SEND THE MESSAGES TO (use only 1. or 2.)\n\n     1.Manually introduce them into the 'AccountsTable' in 'db.sqlite' file\n\n     2.Go to 'app.py', go to line 184 and paste into the 'accounts' list the accounts reffered above and also uncomment lines from 184 to 187 included:\n     Example: accounts = ['account1', 'account2', 'account3']\n\n--->Restart the code\n\n")
+    username_host = str(input("Enter the host accounts username: "))
+    print("\n")
+    password_host = input("Enter the host accounts password: ")
+    print("\n")
+
     
-    DRIVER.find_element(
-        by="class name", value = "_aauy"
-        ).send_keys(username)
+    service.start()
+    
+    Db = Database(PATH, cursor, sqliteConnection)
+    PFC = ProfileControl()
+    DRIVER = webdriver.Remote(service.service_url, desired_capabilities = webdriver.DesiredCapabilities.CHROME, options=options_chrome)
 
-    sleep(0.5)
-    PFC.GetToAccountMainPage()
-    sleep(3)
+    # accounts = []
+    # for i in range(len(accounts)):
+    #     Db.InsertData("AccountsTable", accounts[i])
+    # print("Data Inserted")
 
-    press('tab')
-    press('tab')
-    press('enter')
+    data_list = []
+    data = Db.SelectData("AccountsTable")
+
+    for row in data:
+        data_list.append(str(row))
+
+
+    DRIVER.get(BASE_URL)
 
     sleep(3)
-    PFC.WriteMessage()
+    PFC.LogInPopUpDown()
+    sleep(2.5)
 
-    sleep(1)
-    PFC.SendMessage()
-    sleep(3)
+    username = DRIVER.find_element(by="css selector", value="input[name='username']")
+    password = DRIVER.find_element(by="css selector", value="input[name='password']")
 
-    if(i >= len(data_list)):
-        service.stop()
-        print(username, end="\n")
+    username.clear()
+    password.clear()
 
-    else:
-        DRIVER.get("https://www.instagram.com")
-        print(username, end="\n")
+    username.send_keys(username_host)
+    password.send_keys(str(password_host))
+
+    login = DRIVER.find_element(by="css selector", value="button[type='submit']")
+    login.click()
+
+    print("\n\n")
+    sleep(10)
+
+    for i in range(len(data_list)):
+        
+        username = data_list[i][2:][:len(data_list[i]) - 5]
+        
+        # PFC.SearchProfile()
+        # sleep(2)
+        # DRIVER.find_element(
+        #     by="class name", value = "_aauy"
+        #     ).send_keys(username)
+
+        # sleep(5)
+        # PFC.GetToAccountMainPage()
+        url = BASE_URL + str(username)
+        DRIVER.get(url)
+        sleep(10)
+
+        press('tab')
+        press('tab')
+        press('tab')
+        press('tab')
+        press('tab')
+        press('tab')
+        press('tab')
+        press('tab')
+        press('tab')
+        press('tab')
+        press('tab')
+        press('tab')
+        press('enter')
+
+        sleep(5)
+        PFC.WriteMessage()
+
         sleep(1)
+        PFC.SendMessage()
+        sleep(3)
 
-    print(username, end="\n")
+        if(i >= len(data_list)):
+            service.stop()
+            print(username, end="\n\n")
+            print("All messages have been sent!")
+        else:
+            DRIVER.get("https://www.instagram.com")
+            print(username, end="\n\n")
+            sleep(1)
+            
+except KeyboardInterrupt:
+    print("\n\nProgram Stopped due to manual interrupting")
