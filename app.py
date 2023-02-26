@@ -1,32 +1,40 @@
-#Imports 
+#Intern Imports 
+from install import Installer
 import os
 import os.path
 from time import sleep
-import clipboard
 from xmlrpc.client import boolean
+import sqlite3
+from platform import system
+
+#Directory files path
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_URL = "https://www.instagram.com/"
+
+PATH_CHROMEDRIVER = os.path.join(BASE_DIR, "chromedriver.exe")
+PATH_CHROMEDRIVER_OSX = os.path.join(BASE_DIR, "chromedriver_OSX")
+PATH_REQUIREMENTS = os.path.join(BASE_DIR, "requirements.txt")
+PATH = os.path.join(BASE_DIR, "db.sqlite")
+
+#Running Installer for external imports
+Installer.RunInstaller(PATH_REQUIREMENTS)
+
+#External imports
+import clipboard
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.chrome.options import Options
 import selenium
 from pyautogui import press
 from pyautogui import hotkey
-from platform import system
-import sqlite3
 
 #Variables
 OS = system()
 sqliteConnection = sqlite3.connect("db.sqlite")
 cursor = sqliteConnection.cursor()
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_URL = "https://www.instagram.com/"
-
 options_chrome = Options()
 options_chrome.add_argument("--disable-notifications") # disabling notifications in chrome settings
-
-PATH_CHROMEDRIVER = os.path.join(BASE_DIR, "chromedriver.exe")
-PATH_CHROMEDRIVER_OSX = os.path.join(BASE_DIR, "chromedriver_OSX")
-PATH = os.path.join(BASE_DIR, "db.sqlite")
 
 if(OS == 'Windows'):
     service = ChromeService(os.path.join(BASE_DIR, "chromedriver.exe"))
@@ -189,8 +197,6 @@ class Database(object):
 
 #MAIN
 try:
-    os.system("python -m pip install -r requirements.txt")
-    os.system("clear")
     
     if(isEmptyClipboard() == True):
         raise EmptyClipboard_ERROR(isEmptyClipboard())
