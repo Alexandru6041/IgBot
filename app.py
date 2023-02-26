@@ -62,45 +62,22 @@ class EmptyClipboard_ERROR(Exception):
 class ProfileControl():
     def LogInPopUpDown(self):
         try:
-            press('tab')
-            press('tab')
-            press('tab')
-            press('tab')
-            press('tab')
-            press('tab')
-            press('tab')
+            for i in range(7):
+                press('tab')
+    
             press('enter')
             
         except TypeError:
             return ProfileControl.LogInPopUpDown()
-        
-    def SearchProfile(self):
-        press('tab')
-        press('tab')
-        press('tab')
-        press('enter')
-        
-    def GetToAccountMainPage(self):
-        press('enter')
-        press('enter')
-    
+
     def WriteMessage(self):
         if(OS == 'Windows'):
             hotkey("ctrl", "v")
-            # press('enter')
         else:
             hotkey("command", "v")
-            # press('enter')
-    
+
     def SendMessage(self):
         press('enter')
-    
-    def NotificationPOPUP(self):
-        press('tab')
-        press('tab')
-        press('enter')
-        sleep(1)
-        
 
 #Database Class
 class Database(object):
@@ -110,8 +87,6 @@ class Database(object):
         self.cursor = cursor
     
     def __createconnection(self):
-        error = None
-        
         try:
             self.sqliteConnection = sqlite3.connect(self.PATH)
             self.cursor = self.sqliteConnection.cursor()
@@ -139,7 +114,7 @@ class Database(object):
     
     def DeleteData(self, table_from, data, condition: str = ""):
         self.__createconnection()
-        # self.cursor.execute(f"SELECT * FROM {table_from}")
+
         if(self.__lookUpData(table_from, data) == False):
             return None
         try:
@@ -155,7 +130,7 @@ class Database(object):
         try:
             self.cursor.execute(f"SELECT * FROM {table_from}")
             data = self.cursor.fetchall()
-            # self.sqliteConnection.commit()
+
             return data
         except Exception as e:
             print(e)
@@ -201,7 +176,6 @@ try:
     if(isEmptyClipboard() == True):
         raise EmptyClipboard_ERROR(isEmptyClipboard())
     
-    print("#RULES:\n\n--->DISABLE 2FA AUTHENTICATION\n\n--->FOLLOW IN ADVANCE EVERY ACCOUNT THAT YOU WANT TO SEND THE MESSAGE TO\n\n--->PASTE IN YOUR CLIPBOARD THE MESSAGE YOU WANT TO SEND\n\n--->WRITE THE LIST OF ALL YOUR ACCOUNTS THAT YOU WANT TO SEND THE MESSAGES TO (use only 1. or 2.)\n\n     1.Manually introduce them into the 'AccountsTable' in 'db.sqlite' file\n\n     2.Go to 'app.py', go to line 184 and paste into the 'accounts' list the accounts reffered above and also uncomment lines from 184 to 187 included:\n     Example: accounts = ['account1', 'account2', 'account3']\n\n--->Restart the code\n\n")
     username_host = str(input("Enter the host accounts username: "))
     print("\n")
     password_host = input("Enter the host accounts password: ")
@@ -251,30 +225,13 @@ try:
         
         username = data_list[i][2:][:len(data_list[i]) - 5]
         
-        # PFC.SearchProfile()
-        # sleep(2)
-        # DRIVER.find_element(
-        #     by="class name", value = "_aauy"
-        #     ).send_keys(username)
-
-        # sleep(5)
-        # PFC.GetToAccountMainPage()
         url = BASE_URL + str(username)
         DRIVER.get(url)
         sleep(10)
+        
+        for i in range(12):
+            press('tab')
 
-        press('tab')
-        press('tab')
-        press('tab')
-        press('tab')
-        press('tab')
-        press('tab')
-        press('tab')
-        press('tab')
-        press('tab')
-        press('tab')
-        press('tab')
-        press('tab')
         press('enter')
 
         sleep(5)
